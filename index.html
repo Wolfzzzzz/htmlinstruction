@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>HTML教学与示例 | 完整语法 + 代码演示 | HTML/PHP双视图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Roboto', 'Helvetica Neue', monospace;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #0f172a;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* 加载动画 */
+        .loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 20%, #0a0e27, #020617);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.7s ease, visibility 0.7s;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .loader-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .spinner {
+            width: 65px;
+            height: 65px;
+            border: 4px solid rgba(59,130,246,0.2);
+            border-top: 4px solid #3b82f6;
+            border-right: 4px solid #a855f7;
+            border-radius: 50%;
+            animation: spin 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .loader-text {
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #a5f3fc, #c084fc);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-weight: 500;
+        }
+        .loader-progress {
+            width: 200px;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .loader-progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #c084fc);
+            transition: width 0.2s;
+        }
+
+        /* 主内容 */
+        .main-content {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.7s ease, transform 0.6s ease;
+        }
+        .main-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 页面过渡 */
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f172a;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.35s;
+        }
+        .page-transition.active { opacity: 0.92; }
+
+        /* 头部 */
+        .hero {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+        }
+        .hero h1 {
+            font-size: clamp(1.6rem, 6vw, 2.6rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #a5f3fc, #c084fc);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .hero p {
+            color: #cbd5e1;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* 导航栏 */
+        .nav-bar {
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            gap: 0.3rem;
+        }
+        .nav-bar a {
+            display: inline-block;
+            padding: 0.45rem 1rem;
+            background: #f1f5f9;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #1e293b;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .nav-bar a:hover, .nav-bar a:active {
+            background: #3b82f6;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 1.5rem auto;
+            padding: 0 1.2rem;
+        }
+
+        /* 卡片 */
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+            border: 1px solid #e9edf2;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1); }
+        .card-header {
+            background: #fefefe;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #eef2ff;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .card-body { padding: 1.5rem; }
+
+        /* 代码切换按钮组 */
+        .code-tabs {
+            display: flex;
+            gap: 0.6rem;
+            background: #f1f5f9;
+            padding: 0.3rem;
+            border-radius: 60px;
+        }
+        .tab-btn {
+            border: none;
+            background: transparent;
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: monospace;
+        }
+        .tab-btn.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+        }
+        .code-block {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            margin: 0.8rem 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            border-left: 4px solid #3b82f6;
+        }
+        .demo-box {
+            background: #fefdf7;
+            border: 1px solid #eef2ff;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin: 0.8rem 0;
+        }
+        .grammar-item {
+            margin-bottom: 2rem;
+            border-left: 3px solid #3b82f6;
+            padding-left: 1rem;
+        }
+        .grammar-tag {
+            font-family: monospace;
+            background: #eef2ff;
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 0.5rem;
+        }
+        .grammar-desc {
+            font-size: 0.9rem;
+            color: #334155;
+            margin-bottom: 0.5rem;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.2rem;
+        }
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 0.8rem;
+        }
+        .modern-input, .modern-select, .modern-textarea {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .modern-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); outline: none; }
+        .btn-gradient {
+            background: linear-gradient(95deg, #3b82f6, #8b5cf6);
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-gradient:active { transform: scale(0.97); }
+        @media (max-width: 680px) {
+            .card-body { padding: 1rem; }
+            .code-tabs .tab-btn { padding: 0.2rem 0.8rem; }
+        }
+        .fade-up {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.5s ease, transform 0.5s;
+        }
+        .fade-up.appear { opacity: 1; transform: translateY(0); }
+        dialog { border-radius: 24px; border: none; padding: 1.5rem; max-width: 90vw; }
+        dialog::backdrop { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+
+<div class="loader-wrapper" id="loader">
+    <div class="spinner"></div>
+    <div class="loader-text">HTML 教学 · 加载语法库</div>
+    <div class="loader-progress"><div class="loader-progress-bar" id="progressFill"></div></div>
+</div>
+<div class="page-transition" id="pageTransition"></div>
+
+<div class="main-content" id="mainContent">
+    <div class="hero">
+        <h1>📘 HTML 教学与示例</h1>
+        <p>完整语法 · 每个示例附带 HTML / PHP 双代码视图 · 所见即所得</p>
+    </div>
+    <div class="nav-bar">
+        <a href="#structure">🏛️ 结构</a> <a href="#text">✍️ 文本</a> <a href="#media">🎬 媒体</a>
+        <a href="#listTable">📊 列表表格</a> <a href="#forms">💎 表单</a> <a href="#advanced">✨ 高级组件</a> <a href="#extra">🚀 扩展</a>
+    </div>
+    <div class="container">
+
+        <!-- ========= 1. 文档结构 ========= -->
+        <div id="structure" class="card fade-up">
+            <div class="card-header"><span>🏛️ 文档结构</span><div class="code-tabs"><button class="tab-btn active" data-lang="html">HTML</button><button class="tab-btn" data-lang="php">PHP</button></div></div>
+            <div class="card-body">
+                <div class="grammar-item"><div class="grammar-tag">&lt;!DOCTYPE html&gt;</div><div class="grammar-desc">HTML5 文档类型声明，告诉浏览器使用标准模式。</div><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;HTML结构示例&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;欢迎学习HTML&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+// PHP 动态输出 HTML 结构示例
+header('Content-Type: text/html; charset=utf-8');
+?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;PHP生成HTML结构&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;&lt;?php echo 'PHP 动态标题: ' . date('Y-m-d'); ?&gt;&lt;/h1&gt;
+    &lt;p&gt;当前时间: &lt;?= date('H:i:s') ?&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre></div></div>
+            </div>
+        </div>
+
+        <!-- ========= 2. 文本格式化 ========= -->
+        <div id="text" class="card fade-up">
+            <div class="card-header"><span>✍️ 文本与格式化</span><div class="code-tabs"><button class="tab-btn active" data-lang="html">HTML</button><button class="tab-btn" data-lang="php">PHP</button></div></div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="grammar-item"><div class="grammar-tag">&lt;h1&gt;~&lt;h6&gt; 标题</div><div class="demo-box"><h1>一级标题</h1><h3>三级标题</h3><h6>六级标题</h6></div><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;h1&gt;主标题&lt;/h1&gt;
+&lt;h3&gt;副标题&lt;/h3&gt;
+&lt;h6&gt;小标题&lt;/h6&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+for($i=1;$i<=6;$i++){
+    echo "&lt;h{$i}&gt;PHP动态标题 h{$i}&lt;/h{$i}&gt;";
+}
+?&gt;</pre></div></div>
+                    <div class="grammar-item"><div class="grammar-tag">强调 & 标记</div><div class="demo-box"><strong>粗体</strong> <em>斜体</em> <mark>高亮</mark> <del>删除</del> <ins>插入</ins></div><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;strong&gt;粗体&lt;/strong&gt; &lt;em&gt;斜体&lt;/em&gt; &lt;mark&gt;高亮&lt;/mark&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+$text = "PHP渲染";
+echo "&lt;strong&gt;{$text}&lt;/strong&gt; &lt;mark&gt;动态标记&lt;/mark&gt;";
+?&gt;</pre></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========= 3. 链接与多媒体 ========= -->
+        <div id="media" class="card fade-up">
+            <div class="card-header"><span>🔗 链接与多媒体</span><div class="code-tabs"><button class="tab-btn active" data-lang="html">HTML</button><button class="tab-btn" data-lang="php">PHP</button></div></div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div class="grammar-item"><div class="grammar-tag">&lt;a&gt; 超链接</div><div class="demo-box"><a href="#" style="color:#3b82f6;">示例链接</a> | <a href="https://developer.mozilla.org" target="_blank">MDN 文档</a></div><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;a href="https://example.com" target="_blank"&gt;访问网站&lt;/a&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+$link = "https://www.php.net";
+echo "&lt;a href='{$link}' target='_blank'&gt;PHP官方手册&lt;/a&gt;";
+?&gt;</pre></div></div>
+                    <div class="grammar-item"><div class="grammar-tag">&lt;img&gt; 图像</div><div class="demo-box"><img src="https://picsum.photos/id/1/200/120" alt="示例图" style="max-width:100%; border-radius:12px; width:180px;"></div><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;img src="photo.jpg" alt="描述" width="200"&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+$imgSrc = "https://picsum.photos/id/20/200/120";
+echo "&lt;img src='{$imgSrc}' alt='动态图片' style='border-radius:12px;'&gt;";
+?&gt;</pre></div></div>
+                    <div class="grammar-item"><div class="grammar-tag">&lt;video&gt; 视频</div><div class="demo-box"><video controls width="220"><source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"></video></div><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;video controls&gt;&lt;source src="movie.mp4"&gt;&lt;/video&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+$videoUrl = "https://www.w3schools.com/html/mov_bbb.mp4";
+echo "&lt;video controls width='250'&gt;&lt;source src='{$videoUrl}'&gt;&lt;/video&gt;";
+?&gt;</pre></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========= 4. 列表与表格 ========= -->
+        <div id="listTable" class="card fade-up">
+            <div class="card-header"><span>📋 列表与表格</span><div class="code-tabs"><button class="tab-btn active" data-lang="html">HTML</button><button class="tab-btn" data-lang="php">PHP</button></div></div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div><div class="grammar-tag">无序/有序列表</div><div class="demo-box"><ul><li>HTML5</li><li>CSS3</li></ul><ol><li>第一步</li><li>第二步</li></ol></div><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;ul&gt;&lt;li&gt;项目&lt;/li&gt;&lt;/ul&gt;
+&lt;ol&gt;&lt;li&gt;步骤&lt;/li&gt;&lt;/ol&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+$items = ["PHP", "MySQL", "HTML"];
+echo "&lt;ul&gt;";
+foreach($items as $item) echo "&lt;li&gt;$item&lt;/li&gt;";
+echo "&lt;/ul&gt;";
+?&gt;</pre></div></div>
+                    <div><div class="grammar-tag">表格结构</div><div class="demo-box"><table border="1" cellpadding="5" style="border-collapse:collapse"><tr><th>标签</th><th>作用</th></tr><tr><td>&lt;table&gt;</td><td>定义表格</td></tr></table></div><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;table&gt;&lt;tr&gt;&lt;th&gt;标题&lt;/th&gt;&lt;/tr&gt;&lt;/table&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+echo "&lt;table border='1'&gt;&lt;tr&gt;&lt;th&gt;PHP动态表头&lt;/th&gt;&lt;/tr&gt;";
+echo "&lt;tr&gt;&lt;td&gt;数据行&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;";
+?&gt;</pre></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========= 5. 高级表单 (包含完整示例代码) ========= -->
+        <div id="forms" class="card fade-up">
+            <div class="card-header"><span>📝 高级表单控件集</span><div class="code-tabs"><button class="tab-btn active" data-lang="html">HTML</button><button class="tab-btn" data-lang="php">PHP</button></div></div>
+            <div class="card-body">
+                <div class="grammar-item">
+                    <div class="grammar-tag">现代表单元素演示</div>
+                    <div class="demo-box">
+                        <form onsubmit="alert('表单演示 (未实际提交)'); return false;">
+                            <div style="display:grid; gap:0.8rem;">
+                                <div><label>文本：</label><input type="text" class="modern-input" placeholder="用户名" value="演示内容"></div>
+                                <div><label>邮箱：</label><input type="email" class="modern-input" placeholder="email@example.com"></div>
+                                <div><label>数字：</label><input type="number" class="modern-input"></div>
+                                <div><label>范围：</label><input type="range" min="0" max="100"></div>
+                                <div><label>颜色：</label><input type="color" class="modern-input" style="height:42px;"></div>
+                                <div><label>日期：</label><input type="date" class="modern-input"></div>
+                                <div><select class="modern-select"><option>选项1</option><option>选项2</option></select></div>
+                                <div><textarea rows="2" class="modern-textarea" placeholder="多行文本"></textarea></div>
+                                <div><label><input type="checkbox"> 同意条款</label> <label><input type="radio" name="gender"> 男</label></div>
+                                <button type="submit" class="btn-gradient">提交示例</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="code-content" data-lang-group>
+                        <pre class="code-block html-code">&lt;!-- HTML 表单完整示例 --&gt;
+&lt;form action="/submit" method="post"&gt;
+    &lt;input type="text" name="username" placeholder="用户名"&gt;
+    &lt;input type="email" name="email"&gt;
+    &lt;input type="range" min="0" max="100"&gt;
+    &lt;select&gt;&lt;option&gt;选择&lt;/option&gt;&lt;/select&gt;
+    &lt;button type="submit"&gt;发送&lt;/button&gt;
+&lt;/form&gt;</pre>
+                        <pre class="code-block php-code" style="display:none;">&lt;?php
+// PHP 动态生成表单 + 处理逻辑示例
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = htmlspecialchars($_POST['username'] ?? '');
+    echo "&lt;p&gt;收到: $username&lt;/p&gt;";
+}
+?&gt;
+&lt;form method="post"&gt;
+    &lt;input type="text" name="username" placeholder="PHP动态表单"&gt;
+    &lt;button type="submit"&gt;PHP提交&lt;/button&gt;
+&lt;/form&gt;</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========= 6. 高级组件 (Canvas/Dialog/SVG) ========= -->
+        <div id="advanced" class="card fade-up">
+            <div class="card-header"><span>🎨 高级组件</span><div class="code-tabs"><button class="tab-btn active" data-lang="html">HTML</button><button class="tab-btn" data-lang="php">PHP</button></div></div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div><div class="grammar-tag">Canvas 绘图</div><canvas id="sampleCanvas" width="240" height="100" style="background:#0f172a; border-radius:16px; width:100%;"></canvas><button id="drawCanvasBtn" class="btn-gradient" style="margin-top:6px;">绘制图形</button><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;canvas id="myCanvas" width="200" height="100"&gt;&lt;/canvas&gt;
+&lt;script&gt;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'blue';
+  ctx.fillRect(10,10,50,50);
+&lt;/script&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+// PHP 无法直接操作canvas，但可以输出html/js
+echo '&lt;canvas id="phpCanvas" width="200" height="100"&gt;&lt;/canvas&gt;
+&lt;script&gt;const c=document.getElementById("phpCanvas");const ctx=c.getContext("2d");ctx.fillStyle="#3b82f6";ctx.fillRect(20,20,60,40);&lt;/script&gt;';
+?&gt;</pre></div></div>
+                    <div><div class="grammar-tag">Dialog 对话框</div><button id="openDialog" class="btn-gradient">打开弹窗</button><dialog id="demoDialog"><h3>📘 HTML教学弹窗</h3><p>原生dialog元素 + PHP后端可配合</p><button id="closeDialog" class="btn-gradient">关闭</button></dialog><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;dialog id="modal"&gt;内容&lt;/dialog&gt;
+&lt;button onclick="modal.showModal()"&gt;打开&lt;/button&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+// PHP 动态生成对话框
+echo '&lt;dialog id="phpDialog"&gt;&lt;p&gt;PHP 动态内容&lt;/p&gt;&lt;button onclick="this.closest(\'dialog\').close()"&gt;关闭&lt;/button&gt;&lt;/dialog&gt;
+&lt;button onclick="document.getElementById(\'phpDialog\').showModal()"&gt;PHP弹窗&lt;/button&gt;';
+?&gt;</pre></div></div>
+                    <div><div class="grammar-tag">SVG 矢量图</div><svg width="150" height="70" viewBox="0 0 200 70"><circle cx="35" cy="35" r="28" fill="#3b82f6"><animate attributeName="r" values="28;33;28" dur="1s" repeatCount="indefinite"/></circle><text x="90" y="42" fill="#0f172a">SVG</text></svg><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;svg width="100" height="100"&gt;&lt;circle cx="50" cy="50" r="40" fill="blue"/&gt;&lt;/svg&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+echo '&lt;svg width="100" height="100"&gt;&lt;circle cx="50" cy="50" r="40" fill="#8b5cf6"/&gt;&lt;/svg&gt;';
+?&gt;</pre></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========= 7. 扩展特性 ========= -->
+        <div id="extra" class="card fade-up">
+            <div class="card-header"><span>🚀 扩展 & 语义化</span><div class="code-tabs"><button class="tab-btn active" data-lang="html">HTML</button><button class="tab-btn" data-lang="php">PHP</button></div></div>
+            <div class="card-body">
+                <div class="grid-2">
+                    <div><div class="grammar-tag">&lt;details&gt; 折叠面板</div><details><summary>点击展开说明</summary><p>语义化标签提升可访问性。</p></details><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;details&gt;&lt;summary&gt;标题&lt;/summary&gt;内容&lt;/details&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+echo "&lt;details&gt;&lt;summary&gt;PHP动态摘要&lt;/summary&gt;&lt;p&gt;动态生成内容&lt;/p&gt;&lt;/details&gt;";
+?&gt;</pre></div></div>
+                    <div><div class="grammar-tag">&lt;template&gt; 动态克隆</div><button id="cloneTemplateBtn" class="btn-gradient">添加卡片</button><template id="demoTemplate"><div style="background:#eef2ff; border-radius:12px; padding:0.5rem; margin-top:0.5rem;">✨ 动态新内容</div></template><div id="templateContainer"></div><div class="code-content" data-lang-group><pre class="code-block html-code">&lt;template id="tpl"&gt;&lt;div&gt;克隆内容&lt;/div&gt;&lt;/template&gt;
+&lt;button onclick="clone()"&gt;复制&lt;/button&gt;</pre><pre class="code-block php-code" style="display:none;">&lt;?php
+// PHP 可配合输出模板
+echo '&lt;template id="phpTpl"&gt;&lt;div&gt;PHP动态模板&lt;/div&gt;&lt;/template&gt;
+&lt;button onclick="let t=document.getElementById(\'phpTpl\').content.cloneNode(true);document.body.append(t)"&gt;PHP克隆&lt;/button&gt;';
+?&gt;</pre></div></div>
+                </div>
+            </div>
+        </div>
+        <div style="text-align:center; margin:1rem 0 2rem; padding:0.8rem; background:#eef2ff; border-radius:2rem;">✨ 每个示例均提供 HTML / PHP 双代码视图 — 切换Tab查看对应源码 ✨</div>
+    </div>
+</div>
+
+<script>
+    // 加载进度
+    let progress = 0;
+    const progFill = document.getElementById('progressFill');
+    const loaderDiv = document.getElementById('loader');
+    const mainDiv = document.getElementById('mainContent');
+    const transDiv = document.getElementById('pageTransition');
+    const interval = setInterval(() => {
+        if (progress < 100) {
+            progress += Math.random() * 12 + 4;
+            if (progress > 100) progress = 100;
+            progFill.style.width = progress + '%';
+        } else {
+            clearInterval(interval);
+            loaderDiv.classList.add('loader-hidden');
+            mainDiv.classList.add('visible');
+            document.querySelectorAll('.fade-up').forEach(el => {
+                const obs = new IntersectionObserver((entries) => {
+                    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('appear'); });
+                }, { threshold: 0.1 });
+                obs.observe(el);
+            });
+            transDiv.classList.add('active');
+            setTimeout(() => transDiv.classList.remove('active'), 450);
+        }
+    }, 100);
+
+    // 为每个卡片的代码切换按钮绑定事件 (HTML/PHP 双视图)
+    document.querySelectorAll('.card').forEach(card => {
+        const tabs = card.querySelectorAll('.tab-btn');
+        const htmlCodeBlock = card.querySelectorAll('.html-code');
+        const phpCodeBlock = card.querySelectorAll('.php-code');
+        function switchLang(lang) {
+            const isHtml = (lang === 'html');
+            htmlCodeBlock.forEach(block => block.style.display = isHtml ? 'block' : 'none');
+            phpCodeBlock.forEach(block => block.style.display = isHtml ? 'none' : 'block');
+            tabs.forEach(btn => {
+                if ((btn.getAttribute('data-lang') === 'html' && isHtml) || (btn.getAttribute('data-lang') === 'php' && !isHtml))
+                    btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+        tabs.forEach(btn => {
+            btn.addEventListener('click', () => switchLang(btn.getAttribute('data-lang')));
+        });
+        // 默认激活html
+        switchLang('html');
+    });
+
+    // Canvas 绘制演示
+    const canvas = document.getElementById('sampleCanvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#3b82f6';
+        ctx.font = '10px monospace';
+        ctx.fillText('点击绘制', 12, 30);
+        document.getElementById('drawCanvasBtn')?.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for(let i=0;i<20;i++) {
+                ctx.fillStyle = `hsl(${Math.random()*360}, 70%, 60%)`;
+                ctx.beginPath();
+                ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*4+2, 0, Math.PI*2);
+                ctx.fill();
+            }
+        });
+    }
+
+    // Dialog 交互
+    const dialog = document.getElementById('demoDialog');
+    const openBtn = document.getElementById('openDialog');
+    const closeBtn = document.getElementById('closeDialog');
+    if(openBtn && dialog) openBtn.onclick = () => dialog.showModal();
+    if(closeBtn && dialog) closeBtn.onclick = () => dialog.close();
+
+    // Template 克隆
+    const cloneBtn = document.getElementById('cloneTemplateBtn');
+    const tpl = document.getElementById('demoTemplate');
+    const container = document.getElementById('templateContainer');
+    if(cloneBtn && tpl) cloneBtn.addEventListener('click', () => {
+        const clone = tpl.content.cloneNode(true);
+        container.appendChild(clone);
+    });
+
+    // 平滑导航 + 过渡
+    document.querySelectorAll('.nav-bar a').forEach(anchor => {
+        anchor.addEventListener('click', (e) => {
+            e.preventDefault();
+            const id = anchor.getAttribute('href').slice(1);
+            const target = document.getElementById(id);
+            if(target) {
+                transDiv.classList.add('active');
+                setTimeout(() => {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setTimeout(() => transDiv.classList.remove('active'), 380);
+                }, 50);
+            }
+        });
+    });
+</script>
+</body>
+</html>
